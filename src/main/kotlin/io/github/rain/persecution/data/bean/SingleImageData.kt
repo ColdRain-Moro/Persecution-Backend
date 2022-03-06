@@ -10,11 +10,13 @@ import kotlinx.serialization.Serializable
  * @since 2022/3/5 23:50
  **/
 @Serializable
-class SingleImageData(
+data class SingleImageData(
     // 图片id
     val id: Int,
     // 分类id
     val cid: Int,
     // 图片url
-    val image: String
+    val image: String,
+    // cos对象储存对应键
+    val cosKey: String
 )

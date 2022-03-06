@@ -17,7 +17,7 @@ object DBHandler {
     lateinit var database: Database
 
     fun init() {
-        val conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/ktorm", "root", "123456")
+        val conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/test", "root", "123456")
 
         Runtime.getRuntime().addShutdownHook(
             thread(start = false) {

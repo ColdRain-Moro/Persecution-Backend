@@ -27,6 +27,10 @@ dependencies {
     implementation("io.ktor:ktor-server-netty:$ktor_version")
     implementation("io.ktor:ktor-serialization:$ktor_version")
     implementation("ch.qos.logback:logback-classic:$logback_version")
+    // 腾讯云对象存储sdk
+    implementation("com.qcloud:cos_api:5.6.69")
+    // mysql
+    implementation("mysql:mysql-connector-java:8.0.28")
     testImplementation("io.ktor:ktor-server-tests:$ktor_version")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
 }

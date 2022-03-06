@@ -1,5 +1,6 @@
 package io.github.rain.persecution.routes
 
+import com.qcloud.cos.model.PutObjectRequest
 import io.github.rain.persecution.data.bean.BaseResponse
 import io.github.rain.persecution.data.bean.ClassificationData
 import io.github.rain.persecution.data.bean.Pager
@@ -7,14 +8,20 @@ import io.github.rain.persecution.data.bean.SingleImageData
 import io.github.rain.persecution.data.db.DBHandler
 import io.github.rain.persecution.data.db.TableClassificationContent
 import io.github.rain.persecution.data.db.TableClassificationInfo
-import io.github.rain.persecution.utils.ErrorCode
+import io.github.rain.persecution.utils.*
 import io.ktor.application.*
 import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.util.pipeline.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.ktorm.dsl.*
+import java.io.File
+import java.util.*
+import kotlin.random.Random
 
 /**
  * io.github.rain.persecution.routes.ClassificationRoutes
@@ -26,8 +33,78 @@ import org.ktorm.dsl.*
 fun Routing.setupClassificationRoutes() {
     // 上传图片
     // 将图片上传到一个储存桶中，再储存url
+    @Suppress("BlockingMethodInNonBlockingContext")
     post("/upload") {
-
+        val params = call.receiveMultipart()
+        val cid = params.value("cid")?.toIntOrNull() ?: return@post let {
+            call.respond(
+                BaseResponse(
+                    ErrorCode.WRONG_PARAMS,
+                    "参数错误",
+                    null
+                )
+            )
+        }
+        val find = DBHandler.database
+            .from(TableClassificationInfo)
+            .select()
+            .where { TableClassificationInfo.id eq cid }
+            .limit(1)
+            .iterator()
+            .hasNext()
+        if (!find) {
+            call.respond(
+                BaseResponse(
+                    ErrorCode.WRONG_PARAMS,
+                    "分类不存在",
+                    null
+                )
+            )
+            return@post
+        }
+        val image = params.file("image") ?: return@post let {
+            call.respond(
+                BaseResponse(
+                    ErrorCode.WRONG_PARAMS,
+                    "参数错误",
+                    null
+                )
+            )
+        }
+        val key = UUID.randomUUID().toString()
+        val file = File("temp${File.pathSeparator}${key + "-" + image.originalFileName}")
+        file.mkdirs()
+        file.createNewFile()
+        // 写入文件
+        image.streamProvider().use { its ->
+            file.outputStream().buffered().use {
+                its.copyTo(it)
+            }
+        }
+        // 关闭
+        image.dispose()
+        // 上传到对象储存桶
+        val request = PutObjectRequest(BUCKET, key, file)
+        cosClient.putObject(request)
+        // 获取上传图片的url
+        val url = cosClient.getObjectUrl(BUCKET, key).toString()
+        // 删除临时文件
+        file.delete()
+        DBHandler.database.useTransaction {
+            DBHandler.database
+                .insert(TableClassificationContent) {
+                    set(it.cid, cid)
+                    set(it.image, url)
+                    set(it.cosKey, key)
+                }
+        }
+        call.respond(
+            BaseResponse(
+                ErrorCode.OK,
+                "操作成功",
+                null
+            )
+        )
     }
 
     // 通过id或name获取分类
@@ -105,7 +182,8 @@ fun Routing.setupClassificationRoutes() {
                 SingleImageData(
                     it[TableClassificationContent.id]!!,
                     it[TableClassificationContent.cid]!!,
-                    it[TableClassificationContent.image]!!
+                    it[TableClassificationContent.image]!!,
+                    it[TableClassificationContent.cosKey]!!
                 )
             }
         call.respond(
@@ -125,12 +203,15 @@ fun Routing.setupClassificationRoutes() {
     post("/classification/create") {
         val params = call.receiveParameters()
         if (!assertArgsNonNull(params, "name")) return@post
-        DBHandler.database
-            .insert(TableClassificationInfo) {
-                set(it.name, params["name"])
-                set(it.avatar, params["avatar"] ?: "https://tse2-mm.cn.bing.net/th/id/OIP-C.CN79D_9Jx71T6Ugg0Tpx2AHaHa?pid=ImgDet&rs=1")
-                set(it.description, params["description"] ?: "没有介绍喵~")
-            }
+        // 使用事务
+        DBHandler.database.useTransaction {
+            DBHandler.database
+                .insert(TableClassificationInfo) {
+                    set(it.name, params["name"])
+                    set(it.avatar, params["avatar"] ?: "https://tse2-mm.cn.bing.net/th/id/OIP-C.CN79D_9Jx71T6Ugg0Tpx2AHaHa?pid=ImgDet&rs=1")
+                    set(it.description, params["description"] ?: "没有介绍喵~")
+                }
+        }
         call.respond(
             BaseResponse(
                 ErrorCode.OK,
@@ -152,8 +233,10 @@ fun Routing.setupClassificationRoutes() {
                 )
             )
         }
-        DBHandler.database
-            .delete(TableClassificationInfo) { it.id eq id }
+        DBHandler.database.useTransaction {
+            DBHandler.database
+                .delete(TableClassificationInfo) { it.id eq id }
+        }
         call.respond(
             BaseResponse(
                 ErrorCode.OK,
