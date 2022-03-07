@@ -7,12 +7,14 @@ plugins {
     application
     kotlin("jvm") version "1.6.10"
     id("org.jetbrains.kotlin.plugin.serialization") version "1.6.0"
+    id("com.github.johnrengelman.shadow") version "7.0.0"
 }
 
 group = "io.github.rain"
 version = "0.0.1"
+
 application {
-    mainClass.set("io.github.rain.ApplicationKt")
+    mainClass.set("io.github.rain.persecution.ApplicationKt")
 }
 
 repositories {

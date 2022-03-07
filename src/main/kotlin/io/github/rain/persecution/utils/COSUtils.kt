@@ -5,6 +5,8 @@ import com.qcloud.cos.ClientConfig
 import com.qcloud.cos.auth.BasicCOSCredentials
 import com.qcloud.cos.http.HttpProtocol
 import com.qcloud.cos.region.Region
+import io.ktor.http.content.*
+import io.ktor.util.pipeline.*
 
 
 /**
