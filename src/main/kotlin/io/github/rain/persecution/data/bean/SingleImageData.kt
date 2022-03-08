@@ -16,7 +16,5 @@ data class SingleImageData(
     // 分类id
     val cid: Int,
     // 图片url
-    val image: String,
-    // cos对象储存对应键
-    val cosKey: String
+    val image: String
 )

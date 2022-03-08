@@ -36,32 +36,6 @@ fun Routing.setupClassificationRoutes() {
     @Suppress("BlockingMethodInNonBlockingContext")
     post("/upload") {
         val params = call.receiveMultipart()
-        val cid = params.value("cid")?.toIntOrNull() ?: return@post let {
-            call.respond(
-                BaseResponse(
-                    ErrorCode.WRONG_PARAMS,
-                    "参数错误",
-                    null
-                )
-            )
-        }
-        val find = DBHandler.database
-            .from(TableClassificationInfo)
-            .select()
-            .where { TableClassificationInfo.id eq cid }
-            .limit(1)
-            .iterator()
-            .hasNext()
-        if (!find) {
-            call.respond(
-                BaseResponse(
-                    ErrorCode.WRONG_PARAMS,
-                    "分类不存在",
-                    null
-                )
-            )
-            return@post
-        }
         val image = params.file("image") ?: return@post let {
             call.respond(
                 BaseResponse(
@@ -90,19 +64,11 @@ fun Routing.setupClassificationRoutes() {
         val url = cosClient.getObjectUrl(BUCKET, key).toString()
         // 删除临时文件
         file.delete()
-        DBHandler.database.useTransaction {
-            DBHandler.database
-                .insert(TableClassificationContent) {
-                    set(it.cid, cid)
-                    set(it.image, url)
-                    set(it.cosKey, key)
-                }
-        }
         call.respond(
             BaseResponse(
                 ErrorCode.OK,
                 "操作成功",
-                null
+                url
             )
         )
     }
@@ -159,6 +125,59 @@ fun Routing.setupClassificationRoutes() {
         )
     }
 
+    post("/classification/upload") {
+        val params = call.receiveParameters()
+        val cid = params["cid"]?.toIntOrNull() ?: return@post let {
+            call.respond(
+                BaseResponse(
+                    ErrorCode.WRONG_PARAMS,
+                    "参数错误",
+                    null
+                )
+            )
+        }
+        val image = params["image"] ?: return@post let {
+            call.respond(
+                BaseResponse(
+                    ErrorCode.MISSING_PARAMS,
+                    "参数缺失",
+                    null
+                )
+            )
+        }
+        val find = DBHandler.database
+            .from(TableClassificationInfo)
+            .select()
+            .where { TableClassificationInfo.id eq cid }
+            .limit(1)
+            .iterator()
+            .hasNext()
+        if (!find) {
+            call.respond(
+                BaseResponse(
+                    ErrorCode.WRONG_PARAMS,
+                    "分类不存在",
+                    null
+                )
+            )
+            return@post
+        }
+        DBHandler.database.useTransaction {
+            DBHandler.database
+                .insert(TableClassificationContent) {
+                    set(it.cid, cid)
+                    set(it.image, image)
+                }
+        }
+        call.respond(
+            BaseResponse(
+                ErrorCode.OK,
+                "操作成功",
+                null
+            )
+        )
+    }
+
     // 获取分类图片
     // 做下分页处理
     get("/classification/images") {
@@ -182,8 +201,7 @@ fun Routing.setupClassificationRoutes() {
                 SingleImageData(
                     it[TableClassificationContent.id]!!,
                     it[TableClassificationContent.cid]!!,
-                    it[TableClassificationContent.image]!!,
-                    it[TableClassificationContent.cosKey]!!
+                    it[TableClassificationContent.image]!!
                 )
             }
         call.respond(

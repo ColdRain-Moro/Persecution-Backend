@@ -22,5 +22,4 @@ object TableClassificationContent : Table<Nothing>("classification_content") {
     val id = int("id").primaryKey()
     val cid = int("cid")
     val image = varchar("image")
-    val cosKey = varchar("cos_key")
 }
