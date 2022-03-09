@@ -247,6 +247,8 @@ fun Routing.setupClassificationRoutes() {
         DBHandler.database.useTransaction {
             DBHandler.database
                 .delete(TableClassificationInfo) { it.id eq id }
+            DBHandler.database
+                .delete(TableClassificationContent) { it.cid eq id }
         }
         call.respond(
             BaseResponse(
