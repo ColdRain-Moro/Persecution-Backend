@@ -34,7 +34,7 @@ GET /classification/images
 
 | 名称   | 位置  | 类型    | 必选  | 说明             |
 | ------ | ----- | ------- | ----- | ---------------- |
-| id     | query | integer | true  | 分类id           |
+| id     | query | integer | false  | 分类id, 不填则全局查询 |
 | limit  | query | integer | false | 数量限制 默认20  |
 | offset | query | integer | false | 数据偏移量 默认0 |
 
@@ -62,11 +62,14 @@ POST /classification/remove
 
 ## GET 获取全部分类
 
-GET /classification/all
+GET /classification/list
 
 ### 请求参数
 
-无
+| 名称   | 位置  | 类型    | 必选  | 说明             |
+| ------ | ----- | ------- | ----- | ---------------- |
+| limit  | query | integer | false | 数量限制 默认20  |
+| offset | query | integer | false | 数据偏移量 默认0 |
 
 ## GET 搜索分类
 

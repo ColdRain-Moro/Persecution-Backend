@@ -19,6 +19,7 @@ import io.ktor.util.pipeline.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.ktorm.dsl.*
+import org.ktorm.support.mysql.rand
 import java.io.File
 import java.util.*
 import kotlin.random.Random
@@ -181,21 +182,13 @@ fun Routing.setupClassificationRoutes() {
     // 获取分类图片
     // 做下分页处理
     get("/classification/images") {
-        val id = call.request.queryParameters["id"]?.toIntOrNull() ?: return@get let {
-            call.respond(
-                BaseResponse(
-                    ErrorCode.MISSING_PARAMS,
-                    "参数错误或不完整",
-                    ""
-                )
-            )
-        }
+        val id = call.request.queryParameters["id"]?.toIntOrNull()
         val limit = call.request.queryParameters["limit"]?.toIntOrNull() ?: 20
         val offset = call.request.queryParameters["offset"]?.toIntOrNull() ?: 0
         val results = DBHandler.database
             .from(TableClassificationContent)
             .select()
-            .where { TableClassificationContent.cid eq id }
+            .apply { if (id != null) where { TableClassificationContent.cid eq id } }
             .limit(limit, offset)
             .map {
                 SingleImageData(
@@ -264,11 +257,14 @@ fun Routing.setupClassificationRoutes() {
         )
     }
 
-    // 获取全部分类
-    get("/classification/all") {
+    // 获取分类列表
+    get("/classification/list") {
+        val limit = call.request.queryParameters["limit"]?.toIntOrNull() ?: 10
+        val offset = call.request.queryParameters["offset"]?.toIntOrNull() ?: 0
         val list = DBHandler.database
             .from(TableClassificationInfo)
             .select()
+            .limit(limit, offset)
             .map { ClassificationData(it[TableClassificationInfo.id]!!, it[TableClassificationInfo.name]!!, it[TableClassificationInfo.avatar]!!, it[TableClassificationInfo.description]!!) }
         call.respond(
             BaseResponse(
