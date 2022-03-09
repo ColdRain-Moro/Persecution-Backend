@@ -41,7 +41,7 @@ fun Routing.setupClassificationRoutes() {
                 BaseResponse(
                     ErrorCode.WRONG_PARAMS,
                     "参数错误",
-                    null
+                    ""
                 )
             )
         }
@@ -82,7 +82,7 @@ fun Routing.setupClassificationRoutes() {
                     BaseResponse(
                         ErrorCode.MISSING_PARAMS,
                         "参数缺失",
-                        null
+                        ""
                     )
                 )
             }
@@ -97,7 +97,7 @@ fun Routing.setupClassificationRoutes() {
                     BaseResponse(
                         ErrorCode.WRONG_PARAMS,
                         "不存在与该名称匹配的参数",
-                        null
+                        ""
                     )
                 )
             }
@@ -112,7 +112,7 @@ fun Routing.setupClassificationRoutes() {
                     BaseResponse(
                         ErrorCode.WRONG_PARAMS,
                         "参数错误",
-                        null
+                        ""
                     )
                 )
         }
@@ -132,7 +132,7 @@ fun Routing.setupClassificationRoutes() {
                 BaseResponse(
                     ErrorCode.WRONG_PARAMS,
                     "参数错误",
-                    null
+                    ""
                 )
             )
         }
@@ -141,7 +141,7 @@ fun Routing.setupClassificationRoutes() {
                 BaseResponse(
                     ErrorCode.MISSING_PARAMS,
                     "参数缺失",
-                    null
+                    ""
                 )
             )
         }
@@ -157,7 +157,7 @@ fun Routing.setupClassificationRoutes() {
                 BaseResponse(
                     ErrorCode.WRONG_PARAMS,
                     "分类不存在",
-                    null
+                    ""
                 )
             )
             return@post
@@ -173,7 +173,7 @@ fun Routing.setupClassificationRoutes() {
             BaseResponse(
                 ErrorCode.OK,
                 "操作成功",
-                null
+                ""
             )
         )
     }
@@ -186,7 +186,7 @@ fun Routing.setupClassificationRoutes() {
                 BaseResponse(
                     ErrorCode.MISSING_PARAMS,
                     "参数错误或不完整",
-                    null
+                    ""
                 )
             )
         }
@@ -234,7 +234,7 @@ fun Routing.setupClassificationRoutes() {
             BaseResponse(
                 ErrorCode.OK,
                 "操作成功",
-                null
+                ""
             )
         )
     }
@@ -259,7 +259,7 @@ fun Routing.setupClassificationRoutes() {
             BaseResponse(
                 ErrorCode.OK,
                 "操作成功",
-                null
+                ""
             )
         )
     }
@@ -286,7 +286,7 @@ fun Routing.setupClassificationRoutes() {
                 BaseResponse(
                     ErrorCode.MISSING_PARAMS,
                     "参数不完整",
-                    null
+                    ""
                 )
             )
         }
@@ -314,14 +314,14 @@ fun Routing.setupClassificationRoutes() {
 
 suspend fun PipelineContext<Unit, ApplicationCall>.assertArgsNonNull(params: Parameters, vararg args: String): Boolean {
     return args
-        .all { params[it] != null }
+        .all { params[it] != "" }
         .also {
             if (!it) {
                 call.respond(
                     BaseResponse(
                         ErrorCode.MISSING_PARAMS,
                         "参数不完整",
-                        null
+                        ""
                     )
                 )
             }

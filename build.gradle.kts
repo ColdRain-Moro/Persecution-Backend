@@ -22,6 +22,8 @@ repositories {
 }
 
 dependencies {
+    // mysql 方言
+    implementation("org.ktorm:ktorm-support-postgresql:${ktorm_version}")
     implementation("org.ktorm:ktorm-core:$ktorm_version")
     implementation("io.ktor:ktor-server-core:$ktor_version")
     implementation("io.ktor:ktor-auth:$ktor_version")
