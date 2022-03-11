@@ -189,7 +189,7 @@ fun Routing.setupClassificationRoutes() {
             .from(TableClassificationContent)
             .select()
             .apply { if (id != null) where { TableClassificationContent.cid eq id } }
-            .limit(limit, offset)
+            .limit(offset, limit)
             .map {
                 SingleImageData(
                     it[TableClassificationContent.id]!!,
@@ -266,7 +266,7 @@ fun Routing.setupClassificationRoutes() {
         val list = DBHandler.database
             .from(TableClassificationInfo)
             .select()
-            .limit(limit, offset)
+            .limit(offset, limit)
             .map { ClassificationData(it[TableClassificationInfo.id]!!, it[TableClassificationInfo.name]!!, it[TableClassificationInfo.avatar]!!, it[TableClassificationInfo.description]!!) }
         call.respond(
             BaseResponse(
@@ -294,7 +294,7 @@ fun Routing.setupClassificationRoutes() {
             .from(TableClassificationInfo)
             .select()
             .where { TableClassificationInfo.name like query }
-            .limit(limit, offset)
+            .limit(offset, limit)
             .map { ClassificationData(it[TableClassificationInfo.id]!!, it[TableClassificationInfo.name]!!, it[TableClassificationInfo.avatar]!!, it[TableClassificationInfo.description]!!) }
         call.respond(
             BaseResponse(
