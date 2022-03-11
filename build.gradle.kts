@@ -22,7 +22,7 @@ repositories {
 }
 
 dependencies {
-    implementation("com.zaxxer:HikariCP:5.0.1")
+    implementation("com.zaxxer:HikariCP:4.0.3")
     // mysql 方言
     implementation("org.ktorm:ktorm-support-mysql:${ktorm_version}")
     implementation("org.ktorm:ktorm-core:$ktorm_version")
