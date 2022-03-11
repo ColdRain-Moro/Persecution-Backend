@@ -1,8 +1,11 @@
 package io.github.rain.persecution.data.db
 
+import com.zaxxer.hikari.HikariConfig
+import com.zaxxer.hikari.HikariDataSource
 import org.ktorm.database.Database
 import java.sql.Connection
 import java.sql.DriverManager
+import javax.sql.DataSource
 import kotlin.concurrent.thread
 
 /**
@@ -17,22 +20,28 @@ object DBHandler {
     lateinit var database: Database
 
     fun init() {
-        val conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/persecution", "root", "!Ghy030608")
-
-        Runtime.getRuntime().addShutdownHook(
-            thread(start = false) {
-                // 进程退出时，关闭连接
-                conn.close()
-            }
+        database = Database.connect(
+            crateDataSource(
+                "jdbc:mysql://localhost:3306/persecution",
+                "root",
+                "!Ghy030608"
+            )
         )
-
-        database = Database.connect {
-            object : Connection by conn {
-                override fun close() {
-                    // 重写 close 方法，保持连接不关闭
-                }
-            }
-        }
     }
 
+    // create hikari data source
+    private fun crateDataSource(
+        url: String,
+        user: String,
+        password: String,
+    ): DataSource {
+        val config = HikariConfig()
+        config.apply {
+            jdbcUrl = url
+            driverClassName = "com.mysql.cj.jdbc.Driver"
+            username = user
+            setPassword(password)
+        }
+        return HikariDataSource(config)
+    }
 }
