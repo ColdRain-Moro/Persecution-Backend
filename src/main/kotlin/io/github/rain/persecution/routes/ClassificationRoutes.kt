@@ -47,8 +47,10 @@ fun Routing.setupClassificationRoutes() {
             )
         }
         val key = UUID.randomUUID().toString()
-        val file = File("temp${File.pathSeparator}${key + "-" + image.originalFileName}")
-        file.mkdirs()
+        val dir = File("temp")
+        dir.mkdir()
+        val file = File(dir, key + "-" + image.originalFileName)
+        val type = image.originalFileName!!.split(".").last()
         file.createNewFile()
         // 写入文件
         image.streamProvider().use { its ->
@@ -59,10 +61,10 @@ fun Routing.setupClassificationRoutes() {
         // 关闭
         image.dispose()
         // 上传到对象储存桶
-        val request = PutObjectRequest(BUCKET, key, file)
+        val request = PutObjectRequest(BUCKET, "$key.$type", file)
         cosClient.putObject(request)
         // 获取上传图片的url
-        val url = cosClient.getObjectUrl(BUCKET, key).toString()
+        val url = cosClient.getObjectUrl(BUCKET, "$key.$type").toString()
         // 删除临时文件
         file.delete()
         call.respond(
