@@ -8,7 +8,10 @@ import io.github.rain.persecution.data.bean.SingleImageData
 import io.github.rain.persecution.data.db.DBHandler
 import io.github.rain.persecution.data.db.TableClassificationContent
 import io.github.rain.persecution.data.db.TableClassificationInfo
-import io.github.rain.persecution.utils.*
+import io.github.rain.persecution.utils.BUCKET
+import io.github.rain.persecution.utils.ErrorCode
+import io.github.rain.persecution.utils.cosClient
+import io.github.rain.persecution.utils.file
 import io.ktor.application.*
 import io.ktor.http.*
 import io.ktor.http.content.*
@@ -16,13 +19,9 @@ import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.util.pipeline.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import org.ktorm.dsl.*
-import org.ktorm.support.mysql.rand
 import java.io.File
 import java.util.*
-import kotlin.random.Random
 
 /**
  * io.github.rain.persecution.routes.ClassificationRoutes
@@ -76,6 +75,47 @@ fun Routing.setupClassificationRoutes() {
         )
     }
 
+    // 通过id获取单个图片信息
+    get("/image") {
+        val id = call.parameters["id"]?.toIntOrNull() ?: return@get let {
+            call.respond(
+                BaseResponse(
+                    ErrorCode.MISSING_PARAMS,
+                    "参数缺失",
+                    ""
+                )
+            )
+        }
+        val image = DBHandler.database
+            .from(TableClassificationContent)
+            .select()
+            .where { TableClassificationContent.id eq id }
+            .limit(1)
+            .map {
+                SingleImageData(
+                    it[TableClassificationContent.id]!!,
+                    it[TableClassificationContent.cid]!!,
+                    it[TableClassificationContent.image]!!
+                )
+            }
+            .firstOrNull() ?: return@get let {
+            call.respond(
+                BaseResponse(
+                    ErrorCode.WRONG_PARAMS,
+                    "未找到该图片",
+                    ""
+                )
+            )
+        }
+        call.respond(
+            BaseResponse(
+                ErrorCode.OK,
+                "",
+                image
+            )
+        )
+    }
+
     // 通过id或name获取分类
     get("/classification") {
         var id = call.request.queryParameters["id"]?.toIntOrNull()
@@ -109,15 +149,22 @@ fun Routing.setupClassificationRoutes() {
             .from(TableClassificationInfo)
             .select()
             .where { TableClassificationInfo.id eq id }
-            .map { ClassificationData(it[TableClassificationInfo.id]!!, it[TableClassificationInfo.name]!!, it[TableClassificationInfo.avatar]!!, it[TableClassificationInfo.description]!!) }
-            .firstOrNull() ?: return@get let {
-                call.respond(
-                    BaseResponse(
-                        ErrorCode.WRONG_PARAMS,
-                        "参数错误",
-                        ""
-                    )
+            .map {
+                ClassificationData(
+                    it[TableClassificationInfo.id]!!,
+                    it[TableClassificationInfo.name]!!,
+                    it[TableClassificationInfo.avatar]!!,
+                    it[TableClassificationInfo.description]!!
                 )
+            }
+            .firstOrNull() ?: return@get let {
+            call.respond(
+                BaseResponse(
+                    ErrorCode.WRONG_PARAMS,
+                    "参数错误",
+                    ""
+                )
+            )
         }
         call.respond(
             BaseResponse(
@@ -128,6 +175,7 @@ fun Routing.setupClassificationRoutes() {
         )
     }
 
+    // 向某分类上传图片
     post("/classification/upload") {
         val params = call.receiveParameters()
         val cid = params["cid"]?.toIntOrNull() ?: return@post let {
@@ -190,7 +238,7 @@ fun Routing.setupClassificationRoutes() {
         val results = DBHandler.database
             .from(TableClassificationContent)
             .select()
-            .apply { if (id != null) where { TableClassificationContent.cid eq id } }
+            .run { if (id != null) where { TableClassificationContent.cid eq id } else this }
             .limit(offset, limit)
             .map {
                 SingleImageData(
@@ -221,7 +269,11 @@ fun Routing.setupClassificationRoutes() {
             DBHandler.database
                 .insert(TableClassificationInfo) {
                     set(it.name, params["name"])
-                    set(it.avatar, params["avatar"] ?: "https://tse2-mm.cn.bing.net/th/id/OIP-C.CN79D_9Jx71T6Ugg0Tpx2AHaHa?pid=ImgDet&rs=1")
+                    set(
+                        it.avatar,
+                        params["avatar"]
+                            ?: "https://tse2-mm.cn.bing.net/th/id/OIP-C.CN79D_9Jx71T6Ugg0Tpx2AHaHa?pid=ImgDet&rs=1"
+                    )
                     set(it.description, params["description"] ?: "没有介绍喵~")
                 }
         }
@@ -269,7 +321,14 @@ fun Routing.setupClassificationRoutes() {
             .from(TableClassificationInfo)
             .select()
             .limit(offset, limit)
-            .map { ClassificationData(it[TableClassificationInfo.id]!!, it[TableClassificationInfo.name]!!, it[TableClassificationInfo.avatar]!!, it[TableClassificationInfo.description]!!) }
+            .map {
+                ClassificationData(
+                    it[TableClassificationInfo.id]!!,
+                    it[TableClassificationInfo.name]!!,
+                    it[TableClassificationInfo.avatar]!!,
+                    it[TableClassificationInfo.description]!!
+                )
+            }
         call.respond(
             BaseResponse(
                 ErrorCode.OK,
@@ -297,7 +356,14 @@ fun Routing.setupClassificationRoutes() {
             .select()
             .where { TableClassificationInfo.name like query }
             .limit(offset, limit)
-            .map { ClassificationData(it[TableClassificationInfo.id]!!, it[TableClassificationInfo.name]!!, it[TableClassificationInfo.avatar]!!, it[TableClassificationInfo.description]!!) }
+            .map {
+                ClassificationData(
+                    it[TableClassificationInfo.id]!!,
+                    it[TableClassificationInfo.name]!!,
+                    it[TableClassificationInfo.avatar]!!,
+                    it[TableClassificationInfo.description]!!
+                )
+            }
         call.respond(
             BaseResponse(
                 ErrorCode.OK,
