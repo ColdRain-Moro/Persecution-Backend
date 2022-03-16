@@ -354,7 +354,7 @@ fun Routing.setupClassificationRoutes() {
         val list = DBHandler.database
             .from(TableClassificationInfo)
             .select()
-            .where { TableClassificationInfo.name like query }
+            .where { TableClassificationInfo.name like "%$query%" }
             .limit(offset, limit)
             .map {
                 ClassificationData(
