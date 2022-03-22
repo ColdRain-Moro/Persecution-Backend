@@ -25,6 +25,17 @@ GET /image
 | ---- | ----- | ------- | ----- | --------------- |
 | id   | query | integer | true | 图片id   |
 
+## POST 获取图片
+
+POST /image/remove
+
+### 请求参数
+
+| 名称 | 位置  | 类型    | 必选  | 说明            |
+| ---- | ----- | ------- | ----- | --------------- |
+| id   | body | integer | true | 图片id   |
+
+
 ## POST 上传图片到分类
 
 POST /classification/upload

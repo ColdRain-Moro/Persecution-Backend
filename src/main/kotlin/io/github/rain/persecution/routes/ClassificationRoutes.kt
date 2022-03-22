@@ -1,5 +1,6 @@
 package io.github.rain.persecution.routes
 
+import com.qcloud.cos.model.DeleteObjectRequest
 import com.qcloud.cos.model.PutObjectRequest
 import io.github.rain.persecution.data.bean.BaseResponse
 import io.github.rain.persecution.data.bean.ClassificationData
@@ -71,6 +72,30 @@ fun Routing.setupClassificationRoutes() {
                 ErrorCode.OK,
                 "操作成功",
                 url
+            )
+        )
+    }
+
+    post("/image/remove") {
+        val params = call.receiveParameters()
+        val id = params["id"]?.toIntOrNull() ?: return@post let {
+            call.respond(
+                BaseResponse(
+                    ErrorCode.WRONG_PARAMS,
+                    "参数缺失或格式有误",
+                    ""
+                )
+            )
+        }
+        DBHandler.database.useTransaction {
+            DBHandler.database
+                .delete(TableClassificationContent) { it.id eq id }
+        }
+        call.respond(
+            BaseResponse(
+                ErrorCode.OK,
+                "操作成功",
+                ""
             )
         )
     }
