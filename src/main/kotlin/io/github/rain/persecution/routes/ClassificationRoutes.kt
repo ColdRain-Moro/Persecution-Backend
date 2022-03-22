@@ -102,12 +102,13 @@ fun Routing.setupClassificationRoutes() {
 
     // 通过id获取单个图片信息
     get("/image") {
+        val def = SingleImageData(0, 0, "")
         val id = call.parameters["id"]?.toIntOrNull() ?: return@get let {
             call.respond(
                 BaseResponse(
                     ErrorCode.MISSING_PARAMS,
                     "参数缺失",
-                    ""
+                    def
                 )
             )
         }
@@ -128,7 +129,7 @@ fun Routing.setupClassificationRoutes() {
                 BaseResponse(
                     ErrorCode.WRONG_PARAMS,
                     "未找到该图片",
-                    ""
+                    def
                 )
             )
         }
