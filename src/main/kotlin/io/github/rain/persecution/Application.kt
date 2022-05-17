@@ -6,8 +6,6 @@ import io.github.rain.persecution.plugins.configureSecurity
 import io.github.rain.persecution.plugins.configureSerialization
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
-import io.ktor.util.*
-import org.ktorm.database.Database
 
 fun main() {
     embeddedServer(Netty, port = 8080, host = "0.0.0.0") {

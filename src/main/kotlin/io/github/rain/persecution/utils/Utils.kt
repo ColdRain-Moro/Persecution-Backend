@@ -1,5 +1,7 @@
 package io.github.rain.persecution.utils
 
+import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import io.ktor.http.content.*
 
 /**
@@ -14,3 +16,5 @@ suspend fun MultiPartData.value(name: String) =
 
 suspend fun MultiPartData.file(name: String) =
     try { readAllParts().filter { it.name == name }[0] as? PartData.FileItem } catch(e: Exception) { null }
+
+val gson: Gson = GsonBuilder().create()

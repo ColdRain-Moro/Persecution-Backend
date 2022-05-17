@@ -2,6 +2,7 @@ package io.github.rain.persecution.data.db
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+import io.github.rain.persecution.utils.secret
 import org.ktorm.database.Database
 import java.sql.Connection
 import java.sql.DriverManager
@@ -20,11 +21,12 @@ object DBHandler {
     lateinit var database: Database
 
     fun init() {
+        val (mysqlUrl, mysqlUser, mysqlPassword) = secret()
         database = Database.connect(
             crateDataSource(
-                "jdbc:mysql://localhost:3306/persecution",
-                "root",
-                "!Ghy030608"
+                mysqlUrl,
+                mysqlUser,
+                mysqlPassword
             )
         )
     }

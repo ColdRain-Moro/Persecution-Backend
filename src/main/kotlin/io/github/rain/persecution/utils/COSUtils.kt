@@ -5,8 +5,6 @@ import com.qcloud.cos.ClientConfig
 import com.qcloud.cos.auth.BasicCOSCredentials
 import com.qcloud.cos.http.HttpProtocol
 import com.qcloud.cos.region.Region
-import io.ktor.http.content.*
-import io.ktor.util.pipeline.*
 
 
 /**
@@ -16,9 +14,9 @@ import io.ktor.util.pipeline.*
  * @author 寒雨
  * @since 2022/3/6 17:05
  **/
-private const val SECRET_ID = "AKIDGMCm69vQfdKkunPjmZ5JGwNXP1MPBftq"
-private const val SECRET_KEY = "h7G7h03pMcbKq52j8G7i24pJWR5SZPyG"
-private const val COS_REGION = "ap-chongqing"
+private val SECRET_ID = secret().secretId
+private val SECRET_KEY = secret().secretKey
+private val COS_REGION = secret().cosRegion
 
 private fun initClient(): COSClient {
     val cred = BasicCOSCredentials(SECRET_ID, SECRET_KEY)
@@ -29,4 +27,4 @@ private fun initClient(): COSClient {
 }
 
 val cosClient by lazy { initClient() }
-const val BUCKET = "persecution-1301196908"
+val BUCKET = secret().cosRegion
